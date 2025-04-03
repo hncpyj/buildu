@@ -1,24 +1,52 @@
 import mammoth from "mammoth";
-import { getDocument } from "pdfjs-dist";
-import type { TextItem } from "pdfjs-dist/types/src/display/api";
+import PDFParser from "pdf2json";
+
+type PDFText = {
+  R: { T: string }[];
+};
+
+type PDFPage = {
+  Texts: PDFText[];
+};
+
+type PDFData = {
+  formImage: {
+    Pages: PDFPage[];
+  };
+};
 
 export async function extractTextFromPdf(file: File): Promise<string> {
-  const arrayBuffer = await file.arrayBuffer();
-  const pdf = await getDocument({ data: arrayBuffer }).promise;
-  let fullText = "";
+  const buffer = Buffer.from(await file.arrayBuffer());
 
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
+  return new Promise((resolve, reject) => {
+    const pdfParser = new PDFParser();
 
-    const strings = content.items
-      .filter((item): item is TextItem => "str" in item) // 👈 Type guard
-      .map((item) => item.str);
+    pdfParser.on("pdfParser_dataError", (err: { parserError: string }) => {
+      console.error("❌ PDF2JSON parsing error:", err.parserError);
+      reject(new Error("Failed to parse PDF."));
+    });
 
-    fullText += strings.join(" ") + "\n";
-  }
+    pdfParser.on("pdfParser_dataReady", (pdfData: PDFData) => {
+      try {
+        const pages = pdfData.formImage.Pages;
 
-  return fullText.trim();
+        const text = pages
+          .map((page) =>
+            page.Texts.map((t) =>
+              decodeURIComponent(t.R[0].T)
+            ).join(" ")
+          )
+          .join("\n\n");
+
+        resolve(text);
+      } catch (e) {
+        console.error("❌ Text extraction error:", e);
+        reject(new Error("Failed to extract text from PDF data."));
+      }
+    });
+
+    pdfParser.parseBuffer(buffer);
+  });
 }
 
 export async function extractTextFromDocx(file: File): Promise<string> {
