@@ -115,7 +115,6 @@ export default function Upload() {
       </div>
 
       <textarea
-        // className="w-full max-w-2xl p-4 border rounded-md h-40"
         className="mt-4 mb-4 w-full max-w-2xl bg-white p-4 border rounded-md shadow-md h-80"
         placeholder="텍스트를 입력하세요"
         value={resumeText}

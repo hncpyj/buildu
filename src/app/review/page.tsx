@@ -18,7 +18,6 @@ export default function Review() {
         setSavedFeedbacks(saved);
     }, []);
 
-    // ✅ 여러 개 저장 가능하도록 개선
     const handleSaveFeedback = () => {
         if (!feedback) return alert("No AI feedback to save!");
         
@@ -34,7 +33,6 @@ export default function Review() {
         alert("Feedback saved successfully! ✅");
     };
 
-    // ✅ 저장된 피드백 중 선택해서 불러오기
     const handleLoadFeedback = (id: string) => {
         const selected = savedFeedbacks.find(fb => fb.id === id);
         if (selected) {
@@ -43,7 +41,6 @@ export default function Review() {
         }
     };
 
-    // ✅ 특정 피드백 삭제 기능 추가
     const handleDeleteFeedback = (id: string) => {
         const updatedFeedbacks = savedFeedbacks.filter(fb => fb.id !== id);
         setSavedFeedbacks(updatedFeedbacks);
