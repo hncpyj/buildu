@@ -8,7 +8,7 @@ import rehypeRaw from "rehype-raw";
 export default function Review() {
     const [feedback, setFeedback] = useState("");
     const [savedFeedbacks, setSavedFeedbacks] = useState<{ id: string, text: string }[]>([]);
-    const [selectedFeedback, setSelectedFeedback] = useState<string>("");
+    const [selectedFeedback] = useState<string>("");
 
     useEffect(() => {
         const storedFeedback = localStorage.getItem("ai_feedback");

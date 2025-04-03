@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import * as Diff from "diff";
+import { diffWords, Change } from "diff";
 
 export default function Compare() {
   const [oldText, setOldText] = useState("");
@@ -50,7 +50,7 @@ export default function Compare() {
       return alert("두 개의 문서를 입력하거나 업로드하세요!");
     }
 
-    const changes = Diff.diffWords(oldText, newText);
+    const changes: Change[] = diffWords(oldText, newText);
 
     const highlightedResult = changes
       .map((part) => {

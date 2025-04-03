@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { extractTextFromPdf, extractTextFromDocx } from "@/lib/extractText";
-import * as Diff from 'diff';
+import { diffWords, Change } from "diff";
 
 export async function POST(req: Request) {
   try {
@@ -25,7 +25,8 @@ export async function POST(req: Request) {
         : await extractTextFromDocx(newFile);
     }
 
-    const changes = Diff.diffWords(text1, text2);
+    const changes: Change[] = diffWords(text1, text2); // ✅ 수정됨
+
     const highlighted = changes.map(part => {
       if (part.added) return `<span class="bg-green-300 px-1">${part.value}</span>`;
       if (part.removed) return `<span class="bg-red-300 px-1">${part.value}</span>`;
@@ -33,7 +34,7 @@ export async function POST(req: Request) {
     }).join(" ");
 
     return NextResponse.json({ highlighted });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Comparison Error:", error);
     return NextResponse.json({ error: "Failed to compare documents" }, { status: 500 });
   }
