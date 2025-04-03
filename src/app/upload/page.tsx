@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import { useDropzone } from "react-dropzone";
-import Link from "next/link";
-import { Home } from "lucide-react";
 
 export default function Upload() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);

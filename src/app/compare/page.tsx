@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
-import { Home } from "lucide-react";
 import * as Diff from "diff";
 
 export default function Compare() {

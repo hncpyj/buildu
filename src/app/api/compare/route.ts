@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { extractTextFromPdf, extractTextFromDocx } from "@/lib/extractText";
-import diff from "diff";
+import * as Diff from 'diff';
 
 export async function POST(req: Request) {
   try {
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
         : await extractTextFromDocx(newFile);
     }
 
-    const changes = diff.diffWords(text1, text2);
+    const changes = Diff.diffWords(text1, text2);
     const highlighted = changes.map(part => {
       if (part.added) return `<span class="bg-green-300 px-1">${part.value}</span>`;
       if (part.removed) return `<span class="bg-red-300 px-1">${part.value}</span>`;

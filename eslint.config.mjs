@@ -12,5 +12,9 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
 ];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const yourFunction = (param) => {
+  // do something...
+};
 
 export default eslintConfig;
