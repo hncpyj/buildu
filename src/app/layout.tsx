@@ -30,7 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-black`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased text-foreground bg-background`}
       >
         {/* 🔹 상단 고정 네비게이션 바 */}
         <nav className="w-full bg-white shadow-md p-4 sticky top-0 z-50">
