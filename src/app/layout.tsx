@@ -35,7 +35,7 @@ export default function RootLayout({
         {/* 🔹 상단 고정 네비게이션 바 */}
         <nav className="w-full bg-white shadow-md p-4 sticky top-0 z-50">
           {/* <div className="max-w-7xl mx-auto flex gap-6 items-center text-sm font-semibold text-gray-700"> */}
-          <div className="max-w-7xl mx-auto flex gap-6 items-center text-lg font-semibold text-gray-700">
+          <div className="max-w-7xl mx-auto flex gap-6 items-center text-lg font-semibold text-black">
             <Link href="/" className="hover:text-blue-500">🏠 Home</Link>
             <Link href="/upload" className="hover:text-blue-500">이력서 업로드하기</Link>
             <Link href="/review" className="hover:text-blue-500">저장된 결과보기</Link>
