@@ -12,7 +12,7 @@ const TEMP_KEY = "ielts_temp_latest";
 
 export default function Ielts() {
   const [title, setTitle] = useState("");
-  const [oldText, setOldText] = useState("");
+  const [oldTextHtml, setOldTextHtml] = useState("");
   const [newText, setNewText] = useState("");
   const [aiFeedback, setAiFeedback] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -28,7 +28,7 @@ export default function Ielts() {
     savedAt: string;
   }[]>([]);
 
-  const textareaARef = useRef<HTMLTextAreaElement>(null);
+  const taskDivRef = useRef<HTMLDivElement>(null);
   const textareaBRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function Ielts() {
     const saved = localStorage.getItem(TEMP_KEY);
     if (saved) {
       const temp = JSON.parse(saved);
-      if (temp.oldText) setOldText(temp.oldText);
+      if (temp.oldTextHtml) setOldTextHtml(temp.oldTextHtml);
       if (temp.newText) setNewText(temp.newText);
       if (temp.title) setTitle(temp.title);
     }
@@ -58,11 +58,11 @@ export default function Ielts() {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      const temp = { oldText, newText, title };
+      const temp = { oldTextHtml, newText, title };
       localStorage.setItem(TEMP_KEY, JSON.stringify(temp));
     }, 1000);
     return () => clearTimeout(timeout);
-  }, [oldText, newText, title]);
+  }, [oldTextHtml, newText, title]);
 
   useEffect(() => {
     setNewStats({
@@ -71,13 +71,31 @@ export default function Ielts() {
     });
   }, [newText]);
 
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    const items = e.clipboardData.items;
+    for (const item of items) {
+      if (item.type.indexOf("image") !== -1) {
+        const file = item.getAsFile();
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const img = document.createElement("img");
+          img.src = event.target?.result as string;
+          img.className = "max-w-full my-2";
+          taskDivRef.current?.appendChild(img);
+        };
+        reader.readAsDataURL(file!);
+        e.preventDefault();
+      }
+    }
+  };
+
   const handleSave = () => {
     if (!title.trim()) return alert("제목을 입력해주세요.");
     const existingIndex = savedTasks.findIndex((t) => t.title === title);
 
     const newEntry = {
       title,
-      task: oldText,
+      task: oldTextHtml,
       answer: newText,
       feedback: aiFeedback,
       savedAt: new Date().toISOString(),
@@ -101,7 +119,7 @@ export default function Ielts() {
     const selected = savedTasks.find((t) => t.title === selectedTitle);
     if (selected) {
       setTitle(selected.title);
-      setOldText(selected.task);
+      setOldTextHtml(selected.task);
       setNewText(selected.answer);
       setAiFeedback(selected.feedback);
     }
@@ -144,12 +162,8 @@ export default function Ielts() {
             제출 🧠
           </button>
           <button onClick={() => setIsRunning(true)} className="bg-yellow-500 text-white px-4 py-2 rounded">
-            {/* 타이머 시작 ⏱️ */}
             🕒 {formatTime(timeLeft)}
           </button>
-          {/* <div className="text-lg font-bold text-red-600">
-            🕒 {formatTime(timeLeft)}
-          </div> */}
           {savedTasks.length > 0 && (
             <div className="flex flex-col sm:flex-row gap-2 mb-4">
               <select
@@ -191,12 +205,13 @@ export default function Ielts() {
       <div className="flex flex-row gap-4 w-full max-w-8xl mb-6">
         <div className="flex flex-col w-4/12">
           <div className="bg-gray-200 text-lg font-bold py-2 px-4 rounded-t-md">Task</div>
-          <textarea
-            ref={textareaARef}
-            className="resize-none w-full p-4 border rounded-b-md mb-4 min-h-[640px]"
-            placeholder="문제 입력"
-            value={oldText}
-            onChange={(e) => setOldText(e.target.value)}
+          <div
+            ref={taskDivRef}
+            className="resize-none w-full p-4 border rounded-b-md mb-4 min-h-[640px] bg-white overflow-auto"
+            contentEditable
+            onPaste={handlePaste}
+            onInput={(e) => setOldTextHtml(e.currentTarget.innerHTML)}
+            dangerouslySetInnerHTML={{ __html: oldTextHtml }}
           />
         </div>
 
