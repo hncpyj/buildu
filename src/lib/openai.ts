@@ -8,7 +8,7 @@ export async function getResumeFeedback(resumeText: string) {
   const prompt = `이력서를 분석하여 피드백을 제공해주세요:\n\n"${resumeText}"`;
 
   const response = await openai.chat.completions.create({
-    model: "gpt-4-turbo", // gpt-4 대신 gpt-4-turbo 사용
+    model: "gpt-4", // gpt-4-turbo
     messages: [{ role: "user", content: prompt }],
   });
 
