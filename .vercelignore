@@ -1,1 +1,45 @@
-**/test/
+# Node.js dependencies (이미 설치되어 있으므로 필요 없음)
+node_modules/
+
+# Build outputs
+.next/
+dist/
+out/
+build/
+
+# Local environment variables
+.env*
+!.env.production
+
+# Testing files
+coverage/
+**/__tests__/
+**/*.test.*
+**/*.spec.*
+
+# OS-specific files
+.DS_Store
+
+# IDE/editor settings
+.vscode/
+.idea/
+
+# Logs & debug
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+*.log
+
+# Mock data or dev-only assets
+mock/
+mocks/
+fixtures/
+examples/
+
+# ESLint / TypeScript artifacts
+.eslintcache
+*.tsbuildinfo
+
+# Optional: ignore uploaded raw files like test PDFs or images
+uploads/
+public/assets/test/

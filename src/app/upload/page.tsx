@@ -1,7 +1,10 @@
+// src/app/upload/page.tsx
+
 "use client";
 
 import { useState } from "react";
 import { useDropzone } from "react-dropzone";
+import { saveTempData } from "@/utils/storage";
 
 export default function Upload() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -10,40 +13,17 @@ export default function Upload() {
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
-      "application/pdf": [".pdf"],
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
     },
     onDrop: async (acceptedFiles) => {
       const file = acceptedFiles[0];
       setUploadedFile(file);
       setResumeText("파일 처리 중...");
-      
-      if (file.type === "application/pdf") {
-        const text = await extractTextFromPdf(file);
-        setResumeText(text);
-      } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-        const text = await extractTextFromDocx(file);
-        setResumeText(text);
-      }
+
+      const text = await extractTextFromDocx(file);
+      setResumeText(text);
     },
   });
-
-  async function extractTextFromPdf(file: File): Promise<string> {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    console.log("📡 API 요청 전송: /api/parse-pdf");
-
-    const res = await fetch(`${window.location.origin}/api/parse-pdf`, {
-      method: "POST",
-      body: formData,
-    });
-
-    const data = await res.json();
-    console.log("🔍 PDF Parse API Response:", data);
-
-    return data.text || "텍스트를 추출할 수 없는 파일입니다.";
-  }
 
   async function extractTextFromDocx(file: File) {
     return new Promise<string>((resolve, reject) => {
@@ -76,6 +56,7 @@ export default function Upload() {
 
     if (data.feedback) {
       localStorage.setItem("ai_feedback", data.feedback);
+      saveTempData("ai_feedback", data.feedback);
       window.location.href = "/review";
     } else {
       alert("AI 피드백을 받을 수 없습니다.");
@@ -104,13 +85,17 @@ export default function Upload() {
         )}
       </button>
 
-      <div {...getRootProps()} className="border-4 border-dashed p-10 rounded-lg text-center cursor-pointer mb-4 w-full max-w-2xl bg-gray-50 hover:bg-gray-100 flex flex-col items-center justify-center">
+      <div
+        {...getRootProps()}
+        className="border-4 border-dashed p-10 rounded-lg text-center cursor-pointer mb-4 w-full max-w-2xl bg-gray-50 hover:bg-gray-100 flex flex-col items-center justify-center"
+      >
         <input {...getInputProps()} />
-        
         {uploadedFile ? (
           <p className="text-green-600">{uploadedFile.name} 업로드 완료 ✅</p>
         ) : (
-          <p className="text-gray-500">자동 텍스트 추출을 위해 <br/> PDF 또는 DOCX 파일을 <br/> 여기로 드래그하거나 클릭하여 업로드</p>
+          <p className="text-gray-500">
+            자동 텍스트 추출을 위해 <br /> DOCX 파일을 <br /> 여기로 드래그하거나 클릭하여 업로드
+          </p>
         )}
       </div>
 
@@ -120,8 +105,6 @@ export default function Upload() {
         value={resumeText}
         onChange={(e) => setResumeText(e.target.value)}
       />
-      
     </main>
   );
 }
-

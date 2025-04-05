@@ -12,34 +12,35 @@ export function saveTempData<T>(key: string, data: T): void {
 }
 
 export interface SavedTask {
-  title: string;
+  id: string; // unified with generic id
   task: string;
   answer: string;
   feedback: string | null;
   savedAt: string;
 }
 
-export function loadSavedTasks(): SavedTask[] {
+// Generic storage functions
+export function loadStoredItems<T>(key: string): T[] {
   if (typeof window === "undefined") return [];
-  const stored = localStorage.getItem("ielts_saved_tasks");
+  const stored = localStorage.getItem(key);
   return stored ? JSON.parse(stored) : [];
 }
 
-export function saveTask(task: SavedTask): SavedTask[] {
-  const tasks = loadSavedTasks();
-  const index = tasks.findIndex((t: SavedTask) => t.title === task.title);
+export function saveStoredItem<T extends { id: string }>(key: string, item: T): T[] {
+  const items = loadStoredItems<T>(key);
+  const index = items.findIndex((i) => i.id === item.id);
   if (index >= 0) {
-    if (!confirm("같은 제목이 있습니다. 덮어쓸까요?")) return tasks;
-    tasks[index] = task;
+    if (!confirm("같은 제목이 있습니다. 덮어쓸까요?")) return items;
+    items[index] = item;
   } else {
-    tasks.push(task);
+    items.push(item);
   }
-  localStorage.setItem("ielts_saved_tasks", JSON.stringify(tasks));
-  return tasks;
+  localStorage.setItem(key, JSON.stringify(items));
+  return items;
 }
 
-export function deleteTask(title: string): SavedTask[] {
-  const tasks = loadSavedTasks().filter((t: SavedTask) => t.title !== title);
-  localStorage.setItem("ielts_saved_tasks", JSON.stringify(tasks));
-  return tasks;
+export function deleteStoredItem<T extends { id: string }>(key: string, id: string): T[] {
+  const items = loadStoredItems<T>(key).filter((i) => i.id !== id);
+  localStorage.setItem(key, JSON.stringify(items));
+  return items;
 }

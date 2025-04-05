@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  reactStrictMode: true,
+  serverExternalPackages: ["pdf-parse"],
 };
-module.exports = { experiment: { serverComponentsExternalPackages: ['pdf-parse'], }, };
 
 export default nextConfig;

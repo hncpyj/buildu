@@ -5,13 +5,23 @@ import { formatTime } from "@/utils/time";
 import {
   loadTempData,
   saveTempData,
-  loadSavedTasks,
-  saveTask,
-  deleteTask,
+  loadStoredItems,
+  saveStoredItem,
+  deleteStoredItem,
 } from "@/utils/storage";
 import { getNewStats } from "@/utils/stats";
 
+interface SavedTask {
+  id: string;
+  title: string;
+  task: string;
+  answer: string;
+  feedback: string | null;
+  savedAt: string;
+}
+
 const TEMP_KEY = "ielts_temp_latest";
+const TASKS_KEY = "ielts_saved_tasks";
 
 export default function Ielts() {
   const [title, setTitle] = useState("");
@@ -22,12 +32,12 @@ export default function Ielts() {
   const [timeLeft, setTimeLeft] = useState(40 * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [newStats, setNewStats] = useState({ words: 0, chars: 0 });
-
-  const [savedTasks, setSavedTasks] = useState<any[]>([]);
+  const [savedTasks, setSavedTasks] = useState<SavedTask[]>([]);
   const [isMounted, setIsMounted] = useState(false);
 
   const taskDivRef = useRef<HTMLDivElement>(null);
   const textareaBRef = useRef<HTMLTextAreaElement>(null);
+  const selectRef = useRef<HTMLSelectElement>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -41,7 +51,13 @@ export default function Ielts() {
       setNewText(temp.newText || "");
       setTitle(temp.title || "");
     }
-    setSavedTasks(loadSavedTasks());
+
+    const raw = loadStoredItems<unknown>(TASKS_KEY);
+    const patched: SavedTask[] = (raw as SavedTask[]).map((item) => ({
+      ...item,
+      id: item.id ?? (item as SavedTask).title,
+    }));
+    setSavedTasks(patched);
   }, []);
 
   useEffect(() => {
@@ -83,19 +99,20 @@ export default function Ielts() {
 
   const handleSave = () => {
     if (!title.trim()) return alert("제목을 입력해주세요.");
-    const updated = saveTask({
+    const newTask: SavedTask = {
+      id: title.trim(),
       title,
       task: oldTextHtml,
       answer: newText,
       feedback: aiFeedback,
       savedAt: new Date().toISOString(),
-    });
+    };
+    const updated = saveStoredItem<SavedTask>(TASKS_KEY, newTask);
     setSavedTasks(updated);
-    alert("저장 완료!");
   };
 
-  const handleLoad = (selectedTitle: string) => {
-    const selected = savedTasks.find((t) => t.title === selectedTitle);
+  const handleLoad = (selectedId: string) => {
+    const selected = savedTasks.find((t) => t.id === selectedId);
     if (selected) {
       setTitle(selected.title);
       setOldTextHtml(selected.task);
@@ -104,8 +121,8 @@ export default function Ielts() {
     }
   };
 
-  const handleDelete = (selectedTitle: string) => {
-    const updated = deleteTask(selectedTitle);
+  const handleDelete = (selectedId: string) => {
+    const updated = deleteStoredItem<SavedTask>(TASKS_KEY, selectedId);
     setSavedTasks(updated);
   };
 
@@ -146,6 +163,7 @@ export default function Ielts() {
           {isMounted && savedTasks.length > 0 && (
             <div className="flex flex-col sm:flex-row gap-2 mb-4">
               <select
+                ref={selectRef}
                 className="border p-2 rounded"
                 onChange={(e) => handleLoad(e.target.value)}
                 defaultValue=""
@@ -154,7 +172,7 @@ export default function Ielts() {
                   저장된 문제 불러오기
                 </option>
                 {savedTasks.map((t) => (
-                  <option key={t.title} value={t.title}>
+                  <option key={`${t.id}-${t.savedAt}`} value={t.id}>
                     {`${t.title} (${t.answer.trim().split(/\s+/).length} words, ${new Date(
                       t.savedAt
                     ).toLocaleDateString()})`}
@@ -162,7 +180,10 @@ export default function Ielts() {
                 ))}
               </select>
               <button
-                onClick={() => handleDelete(title)}
+                onClick={() => {
+                  const selectedId = selectRef.current?.value;
+                  if (selectedId) handleDelete(selectedId);
+                }}
                 className="bg-red-500 text-white px-4 py-2 rounded w-fit"
               >
                 삭제 ❌

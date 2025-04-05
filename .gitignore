@@ -1,5 +1,3 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
 /node_modules
 /.pnp
@@ -12,31 +10,45 @@
 
 # testing
 /coverage
+**/__tests__/
+/tests/
+/mocks/
+/mock/
+/fixtures/
+/*.spec.ts
+/*.test.ts
 
 # next.js
 /.next/
 /out/
+build/
 
 # production
-/build
+/.vercel/output
 
-# misc
+# env files (보통 커밋 안 함, production만 예외일 수 있음)
+.env
+.env.* # 예: .env.local, .env.development, .env.test 등
+
+# OS-specific
 .DS_Store
-*.pem
+Thumbs.db
 
-# debug
+# IDE/editor
+.vscode/
+.idea/
+
+# logs
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
+pnpm-debug.log*
+*.log
 
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-# typescript
+# misc
+*.pem
 *.tsbuildinfo
-next-env.d.ts
-.env
+.eslintcache
+
+# uploaded or generated assets
+/public/assets/test/
+/uploads/
