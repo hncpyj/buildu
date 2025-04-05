@@ -20,6 +20,8 @@ interface Feedback {
 const FEEDBACK_KEY = "saved_ai_feedbacks";
 
 export function markdownToPlainText(markdown: string): string {
+  if (typeof window === "undefined") return markdown;
+
   const html = marked.parse(markdown) as string;
   const tempElement = document.createElement("div");
   tempElement.innerHTML = html;
@@ -67,12 +69,10 @@ export default function Review() {
   };
 
   const handleDownloadPDF = () => {
-    if (!feedback) return alert("There is no AI feedback😱");
+    if (!feedback.trim()) return alert("There is no AI feedback😱");
 
     const doc = new jsPDF();
-
-    registerMalgunGothic(doc); // 👉 한글 폰트 적용
-    // doc.setFont("helvetica", "normal");
+    registerMalgunGothic(doc);
     doc.setFontSize(14);
     doc.text("AI Resume Feedback", 20, 20);
 
