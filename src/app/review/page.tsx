@@ -4,6 +4,8 @@ import { useEffect, useState, useRef } from "react";
 import { jsPDF } from "jspdf";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
+import { marked } from "marked";
+import { registerMalgunGothic } from "@/utils/pdfFonts";
 import {
   loadStoredItems,
   saveStoredItem,
@@ -17,6 +19,13 @@ interface Feedback {
 
 const FEEDBACK_KEY = "saved_ai_feedbacks";
 
+export function markdownToPlainText(markdown: string): string {
+  const html = marked.parse(markdown) as string;
+  const tempElement = document.createElement("div");
+  tempElement.innerHTML = html;
+  return tempElement.textContent || "";
+}
+
 export default function Review() {
   const [title, setTitle] = useState("");
   const [feedback, setFeedback] = useState("");
@@ -27,15 +36,21 @@ export default function Review() {
   useEffect(() => {
     setIsMounted(true);
     const stored = localStorage.getItem("ai_feedback");
-    if (stored) setFeedback(stored);
+    if (stored) {
+      const clean = stored.startsWith('"') && stored.endsWith('"')
+        ? stored.slice(1, -1)
+        : stored;
+      setFeedback(clean.replace(/\\n/g, "\n"));
+    }
     setSavedFeedbacks(loadStoredItems<Feedback>(FEEDBACK_KEY));
   }, []);
 
   const handleSave = () => {
-    if (!title.trim()) return alert("제목을 입력해주세요");
-    const newItem: Feedback = { id: title.trim(), text: feedback };
+    const id = title.trim() || new Date().toISOString();
+    const newItem: Feedback = { id, text: feedback };
     const updated = saveStoredItem(FEEDBACK_KEY, newItem);
     setSavedFeedbacks(updated);
+    setTitle(id);
   };
 
   const handleLoad = (id: string) => {
@@ -55,13 +70,16 @@ export default function Review() {
     if (!feedback) return alert("There is no AI feedback😱");
 
     const doc = new jsPDF();
-    doc.setFont("helvetica", "normal");
+
+    registerMalgunGothic(doc); // 👉 한글 폰트 적용
+    // doc.setFont("helvetica", "normal");
     doc.setFontSize(14);
     doc.text("AI Resume Feedback", 20, 20);
 
     const margin = 20;
     const pageWidth = doc.internal.pageSize.width - margin * 2;
-    const textLines = doc.splitTextToSize(feedback, pageWidth);
+    const plainText = markdownToPlainText(feedback);
+    const textLines = doc.splitTextToSize(plainText, pageWidth);
 
     doc.text(textLines, margin, 40);
     doc.save("AI_Resume_Feedback.pdf");

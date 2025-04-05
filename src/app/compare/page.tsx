@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { diffWords, Change } from "diff";
+import { getDiffHtml } from "@/utils/textDiff";
 
 export default function Compare() {
   const [oldText, setOldText] = useState("");
@@ -49,17 +49,8 @@ export default function Compare() {
     if (!oldText.trim() || !newText.trim()) {
       return alert("두 개의 문서를 입력하거나 업로드하세요!");
     }
-
-    const changes: Change[] = diffWords(oldText, newText);
-
-    const highlightedResult = changes
-      .map((part) => {
-        if (part.removed) return `<span class='line-through'>${part.value}</span>`;
-        if (part.added) return `<span class='bg-yellow-300 px-1'>${part.value}</span>`;
-        return part.value;
-      })
-      .join("");
-
+  
+    const highlightedResult = getDiffHtml(oldText, newText); // ✅ 유틸 함수 호출
     setHighlighted(highlightedResult);
   };
 
@@ -78,9 +69,6 @@ export default function Compare() {
       <div className="flex flex-row gap-4 w-full max-w-8xl mb-6">
         {/* 문서 A */}
         <div className="flex flex-col w-full">
-          {/* <div className="bg-gray-200 text-center text-lg font-bold py-2 rounded-t-md">
-            A ({oldStats.words} words / {oldStats.chars} chars)
-          </div> */}
           <div className="bg-gray-200 text-lg font-bold py-2 px-4 rounded-t-md flex justify-between">
             <span>Before</span>
             <span className="text-sm font-medium text-right text-gray-600">
@@ -99,7 +87,6 @@ export default function Compare() {
 
         {/* 결과 */}
         <div className="flex flex-col w-full">
-          {/* <div className="bg-gray-200 text-center text-lg font-bold py-2 rounded-t-md"> */}
           <div className="bg-gray-200 text-lg font-bold py-2 px-4 rounded-t-md text-center">
             Changes
           </div>
@@ -113,9 +100,6 @@ export default function Compare() {
 
         {/* 문서 B */}
         <div className="flex flex-col w-full">
-          {/* <div className="bg-gray-200 text-center text-lg font-bold py-2 rounded-t-md">
-            B ({newStats.words} words / {newStats.chars} chars)
-          </div> */}
           <div className="bg-gray-200 text-lg font-bold py-2 px-4 rounded-t-md flex justify-between">
             <span>After</span>
             <span className="text-sm font-medium text-right text-gray-600">

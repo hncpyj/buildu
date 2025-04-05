@@ -1,65 +1,56 @@
-// src/app/upload/page.tsx
-
 "use client";
 
 import { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { saveTempData } from "@/utils/storage";
+import { extractTextFromDocx } from "@/utils/extractText";
 
 export default function Upload() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [resumeText, setResumeText] = useState<string>("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
     },
-    onDrop: async (acceptedFiles) => {
+    onDrop: async (acceptedFiles: File[]) => {
       const file = acceptedFiles[0];
       setUploadedFile(file);
       setResumeText("파일 처리 중...");
 
-      const text = await extractTextFromDocx(file);
-      setResumeText(text);
+      try {
+        const text = await extractTextFromDocx(file);
+        setResumeText(text || "텍스트를 추출할 수 없습니다.");
+      } catch {
+        setResumeText("❌ DOCX 파일을 처리할 수 없습니다.");
+      }
     },
   });
-
-  async function extractTextFromDocx(file: File) {
-    return new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        if (!event.target?.result) return reject("파일을 읽을 수 없습니다.");
-        const arrayBuffer = event.target.result as ArrayBuffer;
-        const mammoth = await import("mammoth");
-        mammoth
-          .extractRawText({ arrayBuffer })
-          .then((result) => resolve(result.value))
-          .catch(reject);
-      };
-      reader.readAsArrayBuffer(file);
-    });
-  }
 
   const handleSubmit = async () => {
     if (!resumeText.trim()) return alert("텍스트를 입력하거나 파일을 업로드하세요");
 
-    setLoading(true);
-    const res = await fetch("/api/review", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ resumeText }),
-    });
+    try {
+      setLoading(true);
+      const res = await fetch("/api/review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeText }),
+      });
 
-    const data = await res.json();
-    setLoading(false);
-
-    if (data.feedback) {
-      localStorage.setItem("ai_feedback", data.feedback);
-      saveTempData("ai_feedback", data.feedback);
-      window.location.href = "/review";
-    } else {
-      alert("AI 피드백을 받을 수 없습니다.");
+      const data = await res.json();
+      if (data.feedback) {
+        localStorage.setItem("ai_feedback", data.feedback);
+        saveTempData("ai_feedback", data.feedback);
+        window.location.href = "/review";
+      } else {
+        alert("AI 피드백을 받을 수 없습니다.");
+      }
+    } catch {
+      alert("서버와의 통신 중 문제가 발생했습니다.");
+    } finally {
+      setLoading(false);
     }
   };
 
