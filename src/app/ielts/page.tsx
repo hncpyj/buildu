@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-
-const formatTime = (seconds: number) => {
-  const m = Math.floor(seconds / 60).toString().padStart(2, "0");
-  const s = (seconds % 60).toString().padStart(2, "0");
-  return `${m}:${s}`;
-};
+import { formatTime } from "@/utils/time";
+import {
+  loadTempData,
+  saveTempData,
+  loadSavedTasks,
+  saveTask,
+  deleteTask,
+} from "@/utils/storage";
+import { getNewStats } from "@/utils/stats";
 
 const TEMP_KEY = "ielts_temp_latest";
 
@@ -20,60 +23,49 @@ export default function Ielts() {
   const [isRunning, setIsRunning] = useState(false);
   const [newStats, setNewStats] = useState({ words: 0, chars: 0 });
 
-  const [savedTasks, setSavedTasks] = useState<{
-    title: string;
-    task: string;
-    answer: string;
-    feedback: string | null;
-    savedAt: string;
-  }[]>([]);
+  const [savedTasks, setSavedTasks] = useState<any[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
 
   const taskDivRef = useRef<HTMLDivElement>(null);
   const textareaBRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isRunning) {
-      timer = setInterval(() => {
-        setTimeLeft((prev) => (prev <= 0 ? 0 : prev - 1));
-      }, 1000);
+    setIsMounted(true);
+    const temp = loadTempData<{
+      oldTextHtml: string;
+      newText: string;
+      title: string;
+    }>(TEMP_KEY);
+    if (temp) {
+      setOldTextHtml(temp.oldTextHtml || "");
+      setNewText(temp.newText || "");
+      setTitle(temp.title || "");
     }
-    return () => clearInterval(timer);
-  }, [isRunning]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem(TEMP_KEY);
-    if (saved) {
-      const temp = JSON.parse(saved);
-      if (temp.oldTextHtml) setOldTextHtml(temp.oldTextHtml);
-      if (temp.newText) setNewText(temp.newText);
-      if (temp.title) setTitle(temp.title);
-    }
-
-    const stored = localStorage.getItem("ielts_saved_tasks");
-    if (stored) {
-      setSavedTasks(JSON.parse(stored));
-    }
+    setSavedTasks(loadSavedTasks());
   }, []);
 
   useEffect(() => {
+    const timer = isRunning
+      ? setInterval(() => {
+          setTimeLeft((prev) => (prev <= 0 ? 0 : prev - 1));
+        }, 1000)
+      : undefined;
+    return () => timer && clearInterval(timer);
+  }, [isRunning]);
+
+  useEffect(() => {
     const timeout = setTimeout(() => {
-      const temp = { oldTextHtml, newText, title };
-      localStorage.setItem(TEMP_KEY, JSON.stringify(temp));
+      saveTempData(TEMP_KEY, { oldTextHtml, newText, title });
     }, 1000);
     return () => clearTimeout(timeout);
   }, [oldTextHtml, newText, title]);
 
   useEffect(() => {
-    setNewStats({
-      words: newText.trim().split(/\s+/).filter(Boolean).length,
-      chars: newText.length,
-    });
+    setNewStats(getNewStats(newText));
   }, [newText]);
 
   const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
-    const items = e.clipboardData.items;
-    for (const item of items) {
+    for (const item of e.clipboardData.items) {
       if (item.type.indexOf("image") !== -1) {
         const file = item.getAsFile();
         const reader = new FileReader();
@@ -91,27 +83,14 @@ export default function Ielts() {
 
   const handleSave = () => {
     if (!title.trim()) return alert("제목을 입력해주세요.");
-    const existingIndex = savedTasks.findIndex((t) => t.title === title);
-
-    const newEntry = {
+    const updated = saveTask({
       title,
       task: oldTextHtml,
       answer: newText,
       feedback: aiFeedback,
       savedAt: new Date().toISOString(),
-    };
-
-    let updatedTasks;
-    if (existingIndex >= 0) {
-      if (!confirm("같은 제목이 있습니다. 덮어쓸까요?")) return;
-      updatedTasks = [...savedTasks];
-      updatedTasks[existingIndex] = newEntry;
-    } else {
-      updatedTasks = [...savedTasks, newEntry];
-    }
-
-    setSavedTasks(updatedTasks);
-    localStorage.setItem("ielts_saved_tasks", JSON.stringify(updatedTasks));
+    });
+    setSavedTasks(updated);
     alert("저장 완료!");
   };
 
@@ -126,9 +105,8 @@ export default function Ielts() {
   };
 
   const handleDelete = (selectedTitle: string) => {
-    const filtered = savedTasks.filter((t) => t.title !== selectedTitle);
-    setSavedTasks(filtered);
-    localStorage.setItem("ielts_saved_tasks", JSON.stringify(filtered));
+    const updated = deleteTask(selectedTitle);
+    setSavedTasks(updated);
   };
 
   const handleSubmit = async () => {
@@ -164,7 +142,8 @@ export default function Ielts() {
           <button onClick={() => setIsRunning(true)} className="bg-yellow-500 text-white px-4 py-2 rounded">
             🕒 {formatTime(timeLeft)}
           </button>
-          {savedTasks.length > 0 && (
+
+          {isMounted && savedTasks.length > 0 && (
             <div className="flex flex-col sm:flex-row gap-2 mb-4">
               <select
                 className="border p-2 rounded"
@@ -176,7 +155,9 @@ export default function Ielts() {
                 </option>
                 {savedTasks.map((t) => (
                   <option key={t.title} value={t.title}>
-                    {`${t.title} (${t.answer.trim().split(/\s+/).length} words, ${new Date(t.savedAt).toLocaleDateString()})`}
+                    {`${t.title} (${t.answer.trim().split(/\s+/).length} words, ${new Date(
+                      t.savedAt
+                    ).toLocaleDateString()})`}
                   </option>
                 ))}
               </select>
