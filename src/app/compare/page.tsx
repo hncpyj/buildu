@@ -10,6 +10,8 @@ export default function Compare() {
 
   const [oldStats, setOldStats] = useState({ words: 0, chars: 0 });
   const [newStats, setNewStats] = useState({ words: 0, chars: 0 });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [replaceTerm, setReplaceTerm] = useState("");
 
   const textareaARef = useRef<HTMLTextAreaElement>(null);
   const textareaBRef = useRef<HTMLTextAreaElement>(null);
@@ -45,25 +47,69 @@ export default function Compare() {
     });
   }, [newText]);
 
-  const handleCompare = () => {
+  useEffect(() => {
     if (!oldText.trim() || !newText.trim()) {
-      return alert("두 개의 문서를 입력하거나 업로드하세요!");
+      setHighlighted(null);
+      return;
+    }
+    const result = getDiffHtml(oldText, newText);
+    setHighlighted(result);
+  }, [oldText, newText]);
+
+  const handleReplace = () => {
+    if (!searchTerm.trim()) return;
+  
+    const replaced = newText.replaceAll(searchTerm, replaceTerm);
+    setNewText(replaced);
+  };
+
+  function highlightSearchTerm(html: string, term: string, replace: string): string {
+    if (!term && !replace) return html;
+  
+    let result = html;
+  
+    if (term) {
+      const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const termRegex = new RegExp(`(${escapedTerm})`, "gi");
+      result = result.replace(termRegex, `<span class='bg-green-200 px-1'>$1</span>`);
     }
   
-    const highlightedResult = getDiffHtml(oldText, newText); // ✅ 유틸 함수 호출
-    setHighlighted(highlightedResult);
-  };
+    if (replace) {
+      const escapedReplace = replace.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const replaceRegex = new RegExp(`(${escapedReplace})`, "gi");
+      result = result.replace(replaceRegex, `<span class='bg-pink-200 px-1'>$1</span>`);
+    }
+  
+    return result;
+  }
 
   return (
     <main className="flex flex-col items-center min-h-screen bg-gray-100 p-6">
       <h1 className="text-2xl font-semibold mb-6">Text Comparison</h1>
+      <div className="flex flex-wrap gap-2 items-center mb-4">
+        <input
+          type="text"
+          placeholder="search term"
+          className="border px-4 py-2 rounded"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="replace term"
+          className="border px-4 py-2 rounded"
+          value={replaceTerm}
+          onChange={(e) => setReplaceTerm(e.target.value)}
+        />
+        <button
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+          onClick={handleReplace}
+        >
+          Replace
+        </button>
+      </div>
 
-      <button
-        onClick={handleCompare}
-        className="px-6 py-3 bg-blue-500 text-white rounded-lg mb-6 flex items-center gap-2 justify-center"
-      >
-        Compare 🔍
-      </button>
+      
 
       {/* 💡 박스들을 가로 정렬 */}
       <div className="flex flex-row gap-4 w-full max-w-8xl mb-6">
@@ -94,7 +140,9 @@ export default function Compare() {
             ref={highlightRef}
             className="resize-none w-full p-4 border border-t-0 rounded-b-md mb-4 bg-gray-50 overflow-y-auto whitespace-pre-wrap min-h-[320px]"
             contentEditable={false}
-            dangerouslySetInnerHTML={{ __html: highlighted || oldText }}
+            dangerouslySetInnerHTML={{
+              __html: highlightSearchTerm(highlighted || oldText, searchTerm, replaceTerm),
+            }}
           />
         </div>
 
