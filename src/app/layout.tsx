@@ -37,10 +37,11 @@ export default function RootLayout({
           {/* <div className="max-w-7xl mx-auto flex gap-6 items-center text-sm font-semibold text-gray-700"> */}
           <div className="max-w-7xl mx-auto flex gap-6 items-center text-lg font-semibold text-black">
             <Link href="/" className="hover:text-blue-500">🏠 Home</Link>
-            <Link href="/upload" className="hover:text-blue-500">이력서 업로드하기</Link>
-            <Link href="/review" className="hover:text-blue-500">저장된 결과보기</Link>
-            <Link href="/compare" className="hover:text-blue-500">문서 비교하기</Link>
-            <Link href="/ielts" className="hover:text-blue-500">아이엘츠</Link>
+            <Link href="/upload" className="hover:text-blue-500">CV Feedback</Link>
+            <Link href="/review" className="hover:text-blue-500">Results</Link>
+            <Link href="/humanizer" className="hover:text-blue-500">Humanizer</Link>
+            <Link href="/compare" className="hover:text-blue-500">Text Compare</Link>
+            <Link href="/ielts" className="hover:text-blue-500">IELTS</Link>
           </div>
         </nav>
 
