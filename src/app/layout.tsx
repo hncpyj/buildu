@@ -36,7 +36,7 @@ export default function RootLayout({
         <nav className="w-full bg-white shadow-md p-4 sticky top-0 z-50">
           {/* <div className="max-w-7xl mx-auto flex gap-6 items-center text-sm font-semibold text-gray-700"> */}
           <div className="max-w-7xl mx-auto flex gap-6 items-center text-lg font-semibold text-black">
-            <Link href="/" className="hover:text-blue-500">🏠 Home</Link>
+            <Link href="/" className="hover:text-blue-500">🚀 BuildU</Link>
             <Link href="/upload" className="hover:text-blue-500">CV Feedback</Link>
             <Link href="/review" className="hover:text-blue-500">Results</Link>
             <Link href="/humanizer" className="hover:text-blue-500">Humanizer</Link>
