@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image"; // ✅ 이미지 컴포넌트 추가
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10 flex flex-col items-center">
-      <h1 className="text-4xl font-bold text-gray-900 mb-2">🚀 BuildU</h1>
+      {/* <h1 className="text-4xl font-bold text-gray-900 mb-2">🚀 BuildU</h1> */}
+      <Link href="/" className="flex items-center hover:opacity-80 transition">
+        <Image src="/BuildULogo.png" alt="BuildU Logo" width={250} height={150} />
+      </Link>
       <p className="text-gray-500 text-center max-w-xl mb-8">
         <strong>BuildU</strong> stands for <em>&quot;Build You&quot;</em>. Your personal AI dashboard for crafting better writing, smarter applications, and clearer communication.
       </p>
@@ -14,7 +18,7 @@ export default function Home() {
         href="/upload"
         className="mb-10 inline-block bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md shadow transition"
       >
-        🧠 Get Started
+        Get Started
       </Link>
 
       {/* Top Section: CV Tools */}
