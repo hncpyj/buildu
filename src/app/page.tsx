@@ -6,7 +6,6 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10 flex flex-col items-center">
       <h1 className="text-4xl font-bold text-gray-900 mb-2">🚀 BuildU</h1>
-      <p className="text-gray-600 mb-1 text-center">BuildU helps you stand out.</p>
       <p className="text-gray-500 text-center max-w-xl mb-8">
         <strong>BuildU</strong> stands for <em>&quot;Build You&quot;</em>. Your personal AI dashboard for crafting better writing, smarter applications, and clearer communication.
       </p>
