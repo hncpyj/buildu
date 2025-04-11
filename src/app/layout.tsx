@@ -43,6 +43,7 @@ export default function RootLayout({
             <Link href="/humanizer" className="hover:text-blue-500">Humanizer</Link>
             <Link href="/compare" className="hover:text-blue-500">Text Compare</Link>
             <Link href="/ielts" className="hover:text-blue-500">IELTS</Link>
+            <Link href="/stt" className="hover:text-blue-500">STT</Link>
           </div>
         </nav>
 

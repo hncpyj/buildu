@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image"; // ✅ 이미지 컴포넌트 추가
+import Image from "next/image";
 
 export default function Home() {
   return (
